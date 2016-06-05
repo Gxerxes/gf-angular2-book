@@ -78,14 +78,97 @@ var dialog = $.widget( "ui.dialog", {
 &emsp;&emsp;前面的内容已经对组件有了初步的了解，下面来了解组件的概念是如何产生的，组件化又是如何发展的。
 
 #### 2.2.1 模块化
-&emsp;&emsp;谈到组件化，先要了解`模块化`。非常粗暴的理解，`模块`就是一堆为了实现共同目标的代码文件的组合。那么就会产生文件结构如何划分的问题
-todo
+&emsp;&emsp;谈到组件化，先要了解`模块化`。在node.js中，模块就是一个文件，引入一个文件就是简单地`require('xxx')`。在前端的领域，也衍生出不少模块化的规范，比如AMD、CMD，不过前端领域发展得很快，因为还未形成一种统一的规范，目前（本书写作的时候）无论是AMD还是CMD都已经过时了，新兴的ES6、TypeScript均采用了类似node的import module的方式，配合browserify、webpack等构建工具将所有模块转换、打包成一个可用于浏览器运行的js文件。
 
-#### 2.2.2 组件化的好处
-todo
+> node.js采用的是CommonJS规范。AMD全称是Asynchromous Module Definition，CMD全称是Common Module Definition，著名的RequireJS、SeasJS分别是AMD、CMD规范的实现之一。
 
-#### 2.2.3 组件的标准
-&emsp;&emsp;在大型软件中，组件化的好处是显而易见的，并且已经是一种共识。通过高度的抽象，组件化提高了开发效率、代码复用率，降低开发维护成本。但是在Web前端并没有通用的组件标准，并不像Java或者C#那样提供了标准的UI组件，Web前端领域正是缺少标准的的实现方式，所以每个框架/库都有一套自己的组件化方式。
+
+&emsp;&emsp;不过在早期的模块化，只是针对js部分做了处理，比如AMD、CMD的其中一个实现RequireJS、SeasJS也只是管理js模块。后来的火起来的Angular1.x，vue.js都建议将同属一个功能的js、css、html放到一个目录下去管理，当这些具有关联功能的文件组织在一起后，便形成了“组件”的雏形。
+
+#### 2.2.2 组件化
+&emsp;&emsp;读者可以非常粗暴地理解，前端中的`组件`就是一堆为了实现共同目标的代码文件的组合。比如说一个hello-world的组件，它的文件结构很可能是这样的：
+
+```
+├── hello-world
+│   ├── hello-world.component.js
+│   ├── hello-world.html
+│   ├── hello-world.css
+```
+
+&emsp;&emsp;随意前端的发展，组件的定义也逐渐清晰，一个典型的出自名门的例子便是React，React是Facebook出品的前端框架，它不但“重新”定义了html，开发了一套jsx的语法，将同一个组件的html模板写在同一个文件中，甚至将样式表也封装到了jsx里，例如用React写的HelloWorld代码如下：
+
+```javascript
+// hello-world.component.jsx
+var {React} = require('react')
+var HelloWorld = React.createClass({
+  render: function() {
+    return (
+      <div className="hello-world">
+        Hello, world!
+      </div>
+    );
+  }
+});
+module.exports = HelloWorld;
+
+// index.jsx
+var HelloWorld = require('./hello-world');
+ReactDOM.render(
+  <HelloWorld />,
+  document.body
+);
+```
+
+##### 组件化的好处
+&emsp;&emsp;在大型软件中，组件化的好处是显而易见的，并且已经是一种共识。通过高度的抽象，组件化提高了开发效率、代码复用率，降低开发维护成本。但是在Web前端并没有通用的组件标准，并不像Java或者C#那样提供了标准的UI组件，Web前端领域正是缺少标准的的实现方式，所以每个框架/库都有一套自己的组件化方式，包括本书讲解的Angular2也有自己的组件化方式。
+
+#### 2.2.3 组件化的标准
+&emsp;&emsp;W3C对Web组件提出了`WebComponent`的标准，通过标准化的非侵入方式封装组件，每个组件包含自己的html、css、js代码，并且不会对页面上其他代码产生影响。它包含以下几种重要的概念：
+
+##### 模板
+&emsp;&emsp;模板允许开发者预先写好一些html标记，用于后续使用或复用。如果你使用过angular1.x或者handlebars之类的东西，你应该熟悉模板是什么。例如：
+
+```html
+<template>
+  <h1>Hello!</h1>
+  <p>You can't see this script in the page.</p>
+</template>
+```
+
+&emsp;&emsp;所有在`template`中的脚本都被浏览器看作“静态”的东西，即是说所有写在`template`里面的像\<img\>、\<video\>这些标签引用的资源都不会被加载，\<script\>标签也不会被执行，里面所有的标签也都不会被渲染到页面中。直到我们使用javascript去控制它。
+
+##### Shadow DOM
+&emsp;&emsp;通过 Shadow DOM 可以在文档流中创建一些完全独立于其他元素的DOM子树，这个特性可以可以让开发者开发一个独立的组件，并且不会干扰到其它 DOM 元素（非侵入的方式）。Shadow DOM 和标准的DOM行为一样，可以通过html、css、js去定义。居于这个特性，使得组件的复用变得简单。
+
+##### 自定义元素
+&emsp;&emsp;WebComponent规范允许开发者声明一个语义化的自定义元素来引用组件：
+
+```html
+<template id="hello-template">
+  <h1>Hello!</h1>
+</template>
+
+<script>
+  // 获得上面的模板
+  var tmpl = document.querySelector('#hello-template');
+
+  // 创建一个新元素的原型，继承自HTMLElement
+  var HelloProto = Object.create(HTMLElement.prototype);
+
+  // 设置 Shadow DOM 并将模板的内容clone进去
+  HelloProto.createdCallback = function() {
+    var root = this.createShadowRoot();
+    root.appendChild(document.importNode(tmpl.content, true));
+  };
+
+  // 注册新元素
+  var Hello = document.registerElement('hello', {
+    prototype: HelloProto
+  });
+</script>
+```
+
+&emsp;&emsp;目前的浏览器只有 Chrome 和 Opera 对 WebComponent 的支持度比较较，其他浏览器不能运行使用 WebComponent 标准写的哪怕是很简单的 hello-world 代码。Google官方出口的Polymer框架则比较接近WebComponent的写法，它简直就是面向未来的框架。同样也是出自Google之手的Angular2——也就是本书的内容——的概念也有几分相似，虽然Angular1也能写模板和自定义元素，但Angular2的组件化比Angular1更加彻底。
 
 ### 2.3 Angular2的组件
 &emsp;&emsp;前面的章节已经介绍了Angular2是什么，以及为什么要使用它。本章的开头也介绍了组件及组件化的概念，在Angular2中，组件是非常重要的组成部分，一种更面向对象的方法来开发Web应用。一般来说，每一个应用程序都有自己的根组件（一般被命名为XxxAppComponent），当应用被启动（bootstrap）时，Angular会从根组件开始启动，并解析组件树。
