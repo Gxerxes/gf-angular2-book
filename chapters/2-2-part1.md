@@ -120,7 +120,7 @@ ReactDOM.render(
 ```
 
 ##### 组件化的好处
-&emsp;&emsp;在大型软件中，组件化的好处是显而易见的，并且已经是一种共识。通过高度的抽象，组件化提高了开发效率、代码复用率，降低开发维护成本。但是在 Web 前端并没有通用的组件标准，并不像 Java 或者 C# 那样提供了标准的UI组件，Web 前端领域正是缺少标准的的实现方式，所以每个框架/库都有一套自己的组件化方式，包括本书讲解的 Angular2 也有自己的组件化方式。
+&emsp;&emsp;在大型的软件开发中，离不开组件化。通过高度的抽象，组件化提高了开发效率、代码复用率，降低开发维护成本。但是在 Web 前端并没有通用的组件标准，并不像 Java 或者 C# 那样提供了标准的UI组件，Web 前端领域正是缺少标准的的实现方式，所以每个框架/库都有一套自己的组件化方式，包括本书讲解的 Angular2 也有自己的组件化方式。
 
 #### 2.2.3 组件化的标准
 &emsp;&emsp;W3C 对 Web 组件提出了`WebComponent`的标准，通过标准化的非侵入方式封装组件，每个组件包含自己的 html、css、js 代码，并且不会对页面上其他代码产生影响。它包含以下几种重要的概念：
@@ -160,7 +160,7 @@ ReactDOM.render(
 </template>
 ```
 
-&emsp;&emsp;所有在`template`中的脚本都被浏览器看作“静态”的东西，即是说所有写在`template`里面的像\<img\>、\<video\>这些标签引用的资源都不会被加载，\<script\>标签也不会被执行，里面所有的标签也都不会被渲染到页面中。直到我们使用javascript去控制它。
+&emsp;&emsp;所有在`template`中的脚本都被浏览器看作“静态”的东西，换句话说所有写在`template`里面的像\<img\>、\<video\>这些标签引用的资源都不会被加载，\<script\>标签也不会被执行，里面所有的标签也都不会被渲染到页面中。直到我们使用 javascript 去控制它。
 
 ##### Shadow DOM
 &emsp;&emsp;通过 Shadow DOM 可以在文档流中创建一些完全独立于其他元素的 DOM 子树，这个特性可以可以让开发者开发一个独立的组件，并且不会干扰到其它 DOM 元素（非侵入的方式）。Shadow DOM 和标准的 DOM 行为一样，可以通过 html、css、js 去定义。居于这个特性，使得组件的复用变得简单。
@@ -196,7 +196,7 @@ ReactDOM.render(
 &emsp;&emsp;目前的浏览器只有 Chrome 和 Opera 对 WebComponent 的支持度比较高，其他浏览器不能运行使用 WebComponent 标准写的哪怕是很简单的 hello-world 代码。Google 官方出口的 Polymer 框架则比较接近 WebComponent 的写法，它简直就是面向未来的框架。同样也是出自 Google 之手的 Angular2 ——也就是本书的内容——的概念也有几分相似，虽然 Angular1 也能写模板和自定义元素，但 Angular2 的组件化比 Angular1 更加彻底。
 
 ### 2.3 Angular2的组件
-&emsp;&emsp;前面的章节已经介绍了 Angular2 是什么，以及为什么要使用它。本章的开头也介绍了组件及组件化的概念，在 Angular2 中，组件是非常重要的组成部分，一种更面向对象的方法来开发Web 应用。一般来说，每一个应用程序都有自己的根组件（一般被命名为 XxxAppComponent），当应用被启动（bootstrap）时，Angular 会从根组件开始启动，并解析组件树。
+&emsp;&emsp;前面的章节已经介绍了 Angular2 是什么，以及为什么要使用它。本章的开头也介绍了组件及组件化的概念，在 Angular2 中，组件是非常重要的组成部分，一种更面向对象的方法来开发Web 应用。
 
 &emsp;&emsp;如果读者写过 Java 或者 C#，或者其他强面向对象的语言，你会很容易理解“组件”，它实际上是一个类，一个有着自己特定的成员数据，并根据成员数据的特性将自己渲染到屏幕上的类。Angular2 也不外乎这些，先看看 Hello World：
 
@@ -221,29 +221,72 @@ export class HelloWorldComponent implements OnInit {
 bootstrap(HelloWorldComponent, [])
 ```
 
+&emsp;&emsp;然后在 index.html 的 body 中，用上 hello-world 组件：
+
+```html
+<body>
+  <hello-world>Loading...</hello-world>
+</body>
+```
+
 &emsp;&emsp;上面的代码大概的意思是创建了一个叫 HelloWorldComponent 的组件，这个组件有一个`name`的成员数据，它将 template 里指定的 div 渲染到了页面上，并且在组件初始化时输出`HelloWorldComponent inited`。所有的 Angular2 应用都需要通过 bootstrap 去启动。
 
 &emsp;&emsp;以上代码，也展示了 Angular2 及组件的一些核心概念：
 
-> - 模块导入（import）
 > - 自定义标签（selector）
 > - 模板（template）
 > - 视图包装（view encapsulation）
 
-##### 模块导入
+##### 自定义元素
+&emsp;&emsp;Angular2 允许开发者自定义元素名称，在刚才的示例代码中，`selector: hello-world`就给 HelloWorldComponent 定义了一个新的元素名称`hello-world`，在相应的 index.html 里，就可以这样去使用了`<hello-world>Loading...</hello-world>`。
 
-##### 自定义标签
+> 为什么要在`hello-world`之间加上一句`Loading...`？这是因为在 Angular2 还没解析好组件并渲染到页面上时，可以看到一个加载的提示。当然也可以不加上。
 
 ##### 模板
+&emsp;&emsp;和很多框架一样，Angular2 也提供模板机制，允许开发者预先定义好一系列 DOM 结构，以用于填充数据。例子中的`template: '<div>Hello World, {{name}}</div>'`便为 HelloWorldComponent 指定了模板内容。关于模板的更多内容，请参考**模板**章节。本节也会作简单的介绍。
 
 ##### 视图包装
+&emsp;&emsp;相比 Angular1，这是一个新的特性，并且可以配置使用原生的 Shadow DOM，它的主要目的是让组件的样式之间更加“独立”而互不影响，使得组件间的复用变得更简单。ViewEncapsulation 有三个可选的值：
 
-#### 2.3.1 组件基本构成
+- ViewEncapsulation.None - 无 Shadow DOM，并且也无样式包装。
+- ViewEncapsulation.Emulated - 无 Shadow DOM，但是通过 Angular2 提供的样式包装机制来模拟组件的独立性，使得组件的样式不受外部影响。
+- ViewEncapsulation.Native - 使用原生的 Shadow DOM 特性。
 
-抽取通讯录里的某一个简单的组件例子（连带bootstrap部分），然后对例子进行剖析
-import引入依赖模块
-@Component修饰器，简述概念原理（下一节MetaData详解里面的具体内容）
-组件类，封装成员变量，封装组件逻辑
+&emsp;&emsp;接下来的内容通过详细的例子来深入认识组件，以及理解以上的核心概念。
+
+#### 2.3.1 组件基本概念
+&emsp;&emsp;和 DOM 树类似，Angular2 的应用是一棵组件树，每个组件都是一个`类`，有自己的生命周期，组件使用`@Component`标注来修饰。
+
+&emsp;&emsp;每个组件都应有它对应的模板，通过`template`或`templateUrl`来指定。模板决定了组件在页面上的展现方式。
+
+&emsp;&emsp;Angular2 通过单向的数据流，将更新应用模型（Application Model）和视图状态（View State）分成两个阶段：开发者负责更新模型；Angular2 则通过变更检测（Change Detection）自动更新对应的视图。
+
+&emsp;&emsp;事件绑定（Event Bindings），开发者可以通过`()`操作符将事件绑定到组件中，当浏览器触发了该事件，则此绑定的组件方法便会执行，这便是第一种情况：开发者通过定义方法来更新模型。
+
+&emsp;&emsp;属性绑定（Property Bindings），开发者可以通过`[]`将组件中的属性绑定到模板上，这样当组件中的属性变化时，Angular2 的变更检测机制便会自动更新该组件的对应视图。
+
+**（此处应有图）**
+
+&emsp;&emsp;对组件来说，属性绑定是一种`数据输入`，用`@Input`定义，通过`[]`语法调用；事件绑定则是`数据输出`，使用`@Output`定义，通过`()`语法调用。
+
+&emsp;&emsp;一般来说，每一个应用程序都有自己的根组件（一般被命名为 XxxApp 或 XxxAppComponent），当应用被启动（bootstrap）时，Angular 会从根组件开始启动，并解析组件树。
+
+&emsp;&emsp;现在让我们来看看一个通讯录的例子。
+
+![Dialog](https://raw.githubusercontent.com/gf-rd/gf-angular2-book/master/_images/chapters2-2/ng2-contact-demo.png)
+
+图2-2 通讯录 Demo
+
+##### 应用的启动（Bootstrap）
+
+```typescript
+import {bootstrap} from '@angular/platform-browser-dynamic';
+import {ContactApp} from './app/contact-app';
+
+bootstrap(ContactApp, [])
+.catch(err => console.error(err));
+```
+
 
 #### 2.3.2 组件功能详解
 
