@@ -255,7 +255,7 @@ bootstrap(HelloWorldComponent, [])
 &emsp;&emsp;接下来的内容通过详细的例子来深入认识组件，以及理解以上的核心概念。
 
 #### 2.3.1 组件基本概念
-&emsp;&emsp;和 DOM 树类似，Angular2 的应用是一棵组件树，每个组件都是一个`类`，有自己的生命周期，组件使用`@Component`标注来修饰。
+&emsp;&emsp;和 DOM 树类似，Angular2 的应用是一棵组件树，每个组件都是一个`类`，有自己的生命周期，组件使用`@Component`修饰符来修饰。
 
 &emsp;&emsp;每个组件都应有它对应的模板，通过`template`或`templateUrl`来指定。模板决定了组件在页面上的展现方式。
 
@@ -265,7 +265,8 @@ bootstrap(HelloWorldComponent, [])
 
 &emsp;&emsp;属性绑定（Property Bindings），开发者可以通过`[]`将组件中的属性绑定到模板上，这样当组件中的属性变化时，Angular2 的变更检测机制便会自动更新该组件的对应视图。
 
-**（此处应有图）**
+*（此处应有图）*
+图2-2 Angular2 组件的数据流
 
 &emsp;&emsp;对组件来说，属性绑定是一种`数据输入`，用`@Input`定义，通过`[]`语法调用；事件绑定则是`数据输出`，使用`@Output`定义，通过`()`语法调用。
 
@@ -275,17 +276,66 @@ bootstrap(HelloWorldComponent, [])
 
 ![Dialog](https://raw.githubusercontent.com/gf-rd/gf-angular2-book/master/_images/chapters2-2/ng2-contact-demo.png)
 
-图2-2 通讯录 Demo
+图2-3 通讯录 Demo
+
+##### 应用的根组件（ContactApp）
+
+> 部分代码
+
+```typescript
+import {Component, OnInit} from '@angular/core';
+...
+
+@Component({
+  selector: 'contact-app',
+  templateUrl: 'app/contact-app.html',
+  styleUrls: ['app/contact-app.css']
+})
+...
+export class ContactApp implements OnInit{
+  constructor() {}
+
+  ngOnInit(){
+  }
+}
+```
+&emsp;&emsp;代码中的`import`在之前也出现了不少次，如果读者了解 NodeJS 的话，这里也很容易理解，因为 Angular2 所有的模块都是依照 NodeJS 的规范去管理的，这里的意思就是从`node_modules`的`@angular`模块中的`core`子模块，导入`Component`和`OnInit`这两个接口。
+
+> OnInit 是组件生命周期中的初始化，后续内容将会讲述。
+
+&emsp;&emsp;然后代码定义了一个`ContactApp`的类，并用`@Component`修饰符修饰了这个类，这是用于定义 Angular2 组件的修饰符，它使得这个类“成为” Angular2 的一个组件。这是 Angular2 提供的一种便捷的语法，除此之外 Angular2 还提供了其他很多很有用的修饰符，用于对开发者定义的类进行修饰，使得这个类可以”装配“上特定的功能。例如上面的代码，通过`selector`、`templateUrl`和`styleUrls`分别定义了组件的标签、模板以及组件的样式。
+
+&emsp;&emsp;每个组件，更准确来说，每个类都会有一个构造方法`constructor`，在构造方法中可以用于声明一些类的属性或做一些**简单的**初始化操作。注意这里用了“简单的”词眼，像变量赋值初始化这些便是“简单的”操作。一般不建议在构造方法里做复杂的初始化操作，例如我们经常会在页面 loaded 之后获取数据，相应地类似这些操作不建议放在构造方法中，而建议放在`ngOnInit`中，保持构造方法的简洁。
+
+&emsp;&emsp;刚才也提到了`OnInit`接口，这个组件实现了这个接口。这是 TypeScript 提供的一种语法约束，类似 Java 中的 Interface，当组件声明了要实现某个接口时，相应地就必须添加该接口的方法实现。例如`OnInit`对应的方法便是`ngOnInit`，以上代码实现了这个接口方法，方法体为空。
 
 ##### 应用的启动（Bootstrap）
 
+> 部分代码
+
 ```typescript
 import {bootstrap} from '@angular/platform-browser-dynamic';
+...
 import {ContactApp} from './app/contact-app';
 
-bootstrap(ContactApp, [])
-.catch(err => console.error(err));
+
+bootstrap(ContactApp, ...)
 ```
+
+&emsp;&emsp;有了根组件，还需要告诉 Angular2 去启动它。因为 Angular2 的启动是平台相关的，它能实现在后端渲染以提高页面输出的速度以及优化 SEO，现在此处需要在浏览器端渲染，所以代码中从`plattorm-browser-dynamic`导入了`bootstrap`这个方法。启动应用很简单，将根组件作为第一个参数传入`bootstrap`即可。
+
+&emsp;&emsp;最后，别忘了还需要在 index.html 中写上你的根组件要渲染的位置。
+
+```html
+<body>
+  <contact-app>
+    Loading...
+  </contact-app>
+</body>
+```
+
+
+*此处要看前面的内容是否已讲述过bootstrap，若无则要展开一下bootstrap的参数之类*
 
 
 #### 2.3.2 组件功能详解
