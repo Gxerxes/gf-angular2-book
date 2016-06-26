@@ -1,7 +1,5 @@
 ## 2 组件
 
-> *此处可能要先回顾一下之前的hello world例子*
-
 &emsp;&emsp;组件（Component）是构成 Angular2 应用的基础和核心，了解它是如何工作是非常重要的，因此本书也将组件介绍在最前面。
 
 ### 2.1 什么是组件
@@ -792,11 +790,9 @@ export class MyList implements AfterContentInit {
 ##### encapsulation（ViewEncapsulation）
 &emsp;&emsp;在本章的开头部分，提到了**视图包装**这个特性，它的主要目的是让组件的样式之间更加“独立”而互不影响，使得组件间的复用变得更简单。ViewEncapsulation 有三个可选的值：
 
-ViewEncapsulation.None - 无 Shadow DOM，并且也无样式包装。
-ViewEncapsulation.Emulated - 无 Shadow DOM，但是通过 Angular2 提供的样式包装机制来模拟组件的独立性，使得组件的样式不受外部影响。
-ViewEncapsulation.Native - 使用原生的 Shadow DOM 特性。
-
-*todo补充更多内容*
+- ViewEncapsulation.None - 无 Shadow DOM，并且也无样式包装。
+- ViewEncapsulation.Emulated - 无 Shadow DOM，但是通过 Angular2 提供的样式包装机制来模拟组件的独立性，使得组件的样式不受外部影响。
+- ViewEncapsulation.Native - 使用原生的 Shadow DOM 特性。
 
 ### 2.6 组件的生命周期
 
@@ -879,10 +875,3 @@ export class MyList implements AfterContentInit {
 &emsp;&emsp;组件在被销毁之前会触发这个勾子，ngOnDestroy 会被调用。建议把组件成员变量等东西的清理逻辑放到 ngOnDestroy 中，它是在指令/组件销毁之前必定运行的逻辑。在这个时候可以通知另一部分关心的程序，这个组将将要被销毁。
 
 &emsp;&emsp;不会被垃圾处理自动收集的资源应当在这个地方去释放，例如订阅了的观察者事件，绑定过的 DOM 事件，通过 setTimeout 或 setInterval 设置过的计时器等，都应当在 ngOnDestroy 中去注销、删除所有与该组件相关的回调。如果忽略这些的话，会导致一些意想不到的后果，并有可能导致内存泄漏。
-
-
-#### 2.6.2 路由勾子
-
-canActivate
-onActivate
-canDeactivate
