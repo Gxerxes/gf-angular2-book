@@ -263,7 +263,7 @@ bootstrap(HelloWorldComponent, [])
 
 &emsp;&emsp;事件绑定（Event Bindings），开发者可以通过`()`操作符将事件绑定到组件中，当浏览器触发了该事件，则此绑定的组件方法便会执行，这便是第一种情况：开发者通过定义方法来更新模型。
 
-&emsp;&emsp;属性绑定（Property Bindings），开发者可以通过`[]`将组件中的属性绑定到模板上，这样当组件中的属性变化时，Angular2 的变动检测机制便会自动更新该组件的对应视图。
+&emsp;&emsp;属性绑定（Property Bindings），开发者可以通过`[]`将组件中的属性绑定到模板上，这样当组件中的属性变化时，Angular2 的变化检测机制便会自动更新该组件的对应视图。
 
 *（此处应有图）*
 图2-2 Angular2 组件的数据流
@@ -566,9 +566,9 @@ export class ContactDetail implements OnInit, OnDestroy {
 > 关于事件绑定的更多内容，请参阅**模板**章节的相关部分。
 
 ##### 属性绑定
-&emsp;&emsp;相对于事件绑定，属性绑定则是 Angular2 通过变动检测机制，及时检测到组件成员变量的变化，并将变更重新渲染到宿主元素的 DOM 上的过程。这种数据流向也是单向的，**成员变量**数据通过 Angular2 的处理，传递到宿主元素。
+&emsp;&emsp;相对于事件绑定，属性绑定则是 Angular2 通过变化检测机制，及时检测到组件成员变量的变化，并将变更重新渲染到宿主元素的 DOM 上的过程。这种数据流向也是单向的，**成员变量**数据通过 Angular2 的处理，传递到宿主元素。
 
-> 变动检测机制，也是组件的核心概念，详情请参阅本章的**变动检测机制**小节。
+> 变化检测机制，也是组件的核心概念，详情请参阅本章的**变化检测机制**小节。
 
 &emsp;&emsp;请看例子中的 contact-detail.html 的代码片段
 
@@ -614,7 +614,7 @@ export class ContactDetail implements OnInit, OnDestroy {
 
 &emsp;&emsp;自定义内容通用用来创建可复用的组件，典型的例子是模态对话框或导航栏。想像一下，在开发 Web 应用的时候，模态对话框和导航栏是使用得非常频繁的功能，自定义内容的特性正是提供了一种复用的方式，使得复用的组件具有样式完全一致的，但内容可自定义的组件。
 
-*demo中需要补充自定义内容的例子*
+*todo demo中需要补充自定义内容的例子*
 
 
 #### 2.5.3 @Component 的其他元数据
@@ -641,68 +641,139 @@ export class ContactDetail implements OnInit, OnDestroy {
 &emsp;&emsp;包含该组件模块的 id，它被用于解析模版和样式的相对路径。在 Dart 中，它可以被自动确定，并不需要去设置。在 CommonJS 中，它总是被设置为 module.id。 
 
 ##### queries（{[key: string]: any;}）
-*todo待搞明白*
+&emsp;&emsp;设置需要被注入到组件的查询。有两种查询，视图查询和内容查询，分别会在ngAfterViewInit和ngAfterContentInit回调函数被调用之前设置。
 
-&emsp;&emsp;配置需要被注入到组件的查询，内容查询在ngAfterContentInit回调函数被调用之前设置，视图查询ngAfterViewInit回调被调用前设置
+&emsp;&emsp;假设有种场景，你的组件里有一个输入框（input），希望在组件初始化之后，将焦点设置到输入框中。传统的做法，可能会是用代码选中 input 在 DOM 中的节点，然后调用 focus 方法。
 
 ```typescript
 @Component({
-  selector: 'someDir',
-  queries: {
-    contentChildren: new ContentChildren(ChildDirective),
-    viewChildren: new ViewChildren(ChildDirective)
-  },
-  template: '<child-directive></child-directive>',
-  directives: [ChildDirective]
+  selector: 'my-input',
+  template: `
+    <input type="text" />
+    <div>Input Component</div>
+  `
 })
-class SomeDir {
-  contentChildren: QueryList<ChildDirective>,
-  viewChildren: QueryList<ChildDirective>
-  ngAfterContentInit() {
-    // contentChildren is set
-  }
-  ngAfterViewInit() {
-    // viewChildren is set
+export class MyInput {
+  constructor(el: ElementRef) {
+    // 直接操作 ElementRef 对应的 DOM 节点（不推荐）
+    el.nativeElement.querySelector('input').focus();
   }
 }
 ```
 
-##### viewProviders（any[]）
-*todo例子待完善，需要配合ng-content*
+&emsp;&emsp;然而这种做法不推荐，只有极少的情况需要直接操作 DOM。angular2 提供了一系列高阶 APIs 来替代 DOM 操作，例如现在正在讲解的 queries。利用 angular2 提供的这些 APIs 的好处有：
 
-&emsp;&emsp;定义一组在子节点的视图可见的依赖注入对象，下面例子中的 viewProviders 声明了 Greeter 类可以被注入：
+- 降低单元测试复杂度
+- 从浏览器中解耦，允许代码在任何渲染环境里运行（比如：Web Worker，或者服务器端，又或者是在 Electron 里）
+
+&emsp;&emsp;那么上述例子可以用 queries 来优化。可以使用视图查询 @ViewChild/@ViewChildren 这两个 queries 获取当前组件模版里的内嵌组件到组件的成员变量中，当组件初始化后，就可以通过 renderer 执行 focus 方法了。
 
 ```typescript
-class Greeter {
-   greet(name:string) {
-     return 'Hello ' + name + '!';
-   }
-}
-@Directive({
-  selector: 'needs-greeter'
+@Component({
+  selector: 'my-input',
+  template: `
+    <input #theInput type="text" />
+    <div>Input Component</div>
+  `
 })
-class NeedsGreeter {
-  greeter:Greeter;
-  constructor(greeter:Greeter) {
-    this.greeter = greeter;
+export class MyInput implements AfterViewInit {
+  @ViewChild('theInput') input: ElementRef;
+
+  constructor(private renderer: Renderer) {}
+
+  ngAfterViewInit() {
+    this.renderer.invokeElementMethod(this.input.nativeElement,    
+    'focus');
   }
 }
+```
+
+&emsp;&emsp;读者可能有疑问，上面的代码 queries 在哪里？事实上，上面的代码和下面的代码是等价的：
+
+```typescript
 @Component({
-  selector: 'greet',
-  viewProviders: [
-    Greeter
-  ],
-  template: `<needs-greeter></needs-greeter>`,
-  directives: [NeedsGreeter]
+  selector: 'my-input',
+  template: `
+    <input #theInput type="text" />
+    <div>Input Component</div>
+  `,
+  queries: {
+    input: new ViewChild('theInput')
+  }
 })
-class HelloWorld {
+export class MyInput implements AfterViewInit {
+  input: ElementRef = null;
+
+  constructor(private renderer: Renderer) {}
+
+  ngAfterViewInit() {
+    this.renderer.invokeElementMethod(this.input.nativeElement,    
+    'focus');
+  }
+}
+```
+
+&emsp;&emsp;以上便是视图查询，简言之借助视图查询和 Angular2 提供的 APIs 可以获得在组件模板上定义的 DOM 节点。那么内容查询又是什么呢？和视图查询类似，只不过内容查询是配合 ng-content 使用的，它用来获得不在组件模版定义里定义的元素。假设有一个列表组件 MyList，它允许用户自定义内容，然后你需要列表的数量。既然是自定义的内容，那我们不可能要求用户能在内容里写上元素的 id，即不能通过 id 去获取，可以通过选择器指令。
+
+&emsp;&emsp;假设用户使用 MyList 写的代码如下：
+
+```html
+<my-list>
+   <li *ngFor="#item of items"> {{item}} </li>
+</my-list>
+```
+
+&emsp;&emsp;然后你需要获得 li 的列表，可以使用 `@Directive` 修饰器，它提供了 selector 的功能，据此来定义一个能查找/选择 `<li>` 元素的指令，用 `@ContentChildren` 获得 li 元素。
+
+```typescript
+// 定义 li 选择器，命名为 ListItem
+@Directive({ selector: 'li' })
+export class ListItem {}
+
+// 组件代码，使用 ng-content 允许自定义内容
+@Component({
+  selector: 'my-list',
+  template: `
+    <ul>
+      <ng-content></ng-content>
+    </ul>
+  `
+})
+export class MyList implements AfterContentInit {
+  @ContentChildren(ListItem) items: QueryList<ListItem>;
+
+  ngAfterContentInit() {
+     // 此时便能对 items 进行操作
+  }
+}
+```
+
+&emsp;&emsp;以上代码，和以下使用 queries 的代码也是等价的：
+
+```typescript
+@Component({
+  selector: 'my-list',
+  template: `
+    <ul>
+      <ng-content></ng-content>
+    </ul>
+  `,
+  queries: {
+    items: new ContentChildren(ListItem)
+  }
+})
+export class MyList implements AfterContentInit {
+  items: QueryList<ListItem>;
+
+  ngAfterContentInit() {
+  }
 }
 ```
 
 ##### changeDetection（ChangeDetectionStrategy）
-&emsp;&emsp;定义使用的变动检测策略。
+&emsp;&emsp;定义使用的变化检测策略。
 
-&emsp;&emsp;当组件被实例化，Angular2 创建一个变动监测器，它负责传播组件的绑定。通过修改此属性，来为组件选择是每次变动检测都会被检查还是只有组件告诉它的时候才触发。不同的策略包括：
+&emsp;&emsp;当组件被实例化，Angular2 创建一个变动监测器，它负责传播组件的绑定。通过修改此属性，来为组件选择是每次变化检测都会被检查还是只有组件告诉它的时候才触发。不同的策略包括：
 
 - Default：CheckAlways
 - OnPush
@@ -713,7 +784,7 @@ class HelloWorld {
 
 &emsp;&emsp;可以设定具体的检查策略减少检查的次数，来提高程序的性能。
 
-> 更详细的内容，请参阅本章节的**变动检测机制**小节。
+> 更详细的内容，请参阅本章节的**变化检测机制**小节。
 
 ##### pipes（Array\<Type | any[]\>）
 &emsp;&emsp;用于指定组件对应的模板中使用的属性过滤、格式化处理的类，更多的内容请参阅**模板**章节的相关内容。
@@ -732,11 +803,52 @@ ViewEncapsulation.Native - 使用原生的 Shadow DOM 特性。
 > 关于组件的生命周期，可继续阅读“指令”的生命周期章节。
 > 组件继承自指令，因此它们具有相同的生命周期实现。
 
-&emsp;&emsp;使用过 Angular1 的读者应该知道，Angualr1 中有构造函数，$watch 方法和 $destroy 事件可以尝试挂接控制器中生命周期的各个时间点。在 Angular2 中，生命周期的含义被定义得更加明确，包括但不限于 ngOninit、ngOnDestroy、ngOnchanges。当组件实现一些生命周期钩子的回调，那么在变动检测的时候就会在特定的时间点被触发。
+&emsp;&emsp;使用过 Angular1 的读者应该知道，Angualr1 中有构造函数，$watch 方法和 $destroy 事件可以尝试挂接控制器中生命周期的各个时间点。在 Angular2 中，生命周期的含义被定义得更加明确，包括但不限于 ngOninit、ngOnDestroy、ngOnchanges。当组件实现一些生命周期钩子的回调，那么在变化检测的时候就会在特定的时间点被触发。
 
 &emsp;&emsp;当组件被创建的时候构造函数被调用，获取到组件的初始状态，如果组件依赖子组件中的属性或数据，我们需要等它初始化完毕。要做到这一点，我们可以处理 ngOnInit 生命周期事件，或者可以在构造函数里调用 setTimeout 能达到同样效果。就像 ngOnInit，我们可以追踪一个组件生命周期中很多事件的足迹。
 
 #### 2.6.1 生命周期勾子
+&emsp;&emsp;指令或组件实例都有一套生命周期，表现在 Angular 对它们的创建、更新和销毁。
+
+&emsp;&emsp;开发者可以实现一个或者多个 “生命周期钩子（接口）” ，从而在生命周期的各阶段作出适当的处理。这些钩子接口包含在 angular2/core 中。
+
+&emsp;&emsp;以下是所有的生命周期钩子接口，Angular 会依序调用下列钩子方法：
+
+- ngOnChanges
+- ngOnInit
+- ngDoCheck
+- ngAfterContentInit
+- ngAfterContentChecked
+- ngAfterViewInit
+- ngAfterViewChecked
+- ngOnDestroy
+
+##### OnChanges
+&emsp;&emsp;在 Angular1 中，如果想要监听数据的变化，需要设置$scope.$watch，然后在每次 digest 循环里判断数据是否有改变。在 Angular2 中，ngOnChanges钩子把这个过程变得简单。只要在组件里定义了 ngOnChanges 方法，在输入数据发生变化时该方法就会被自动调用。
+
+&emsp;&emsp;需要注意的是，ngOnChanges 当且仅当组件输入数据变化时被调用，“输入数据”指的是通过`@Input`修饰器显式指定的那些数据。如果是在`@ViewChildren`，`@ContentChildren`的结果集增加/删除了数据，ngOnChanges 是不会被调用的。
+
+&emsp;&emsp;如果希望在 queries 结果集变化时收到通知，可以通过 changes 属性订阅其内置的observable。一般在`ngAfterContentInit`或`ngAfterViewInit`中去监听，而不是在构造器里或`ngOnInit`中。
+
+```typescript
+@Component({
+  selector: 'my-list',
+  template: `
+    <ul>
+      <ng-content></ng-content>
+    </ul>
+  `
+})
+export class MyList implements AfterContentInit {
+  @ContentChildren(ListItem) items: QueryList<ListItem>;
+
+  ngAfterContentInit() {
+    this.items.changes.subscribe(() => {
+       // 当 items 增加/删除了数据后，这里会被调用
+    });
+  }
+}
+```
 
 ##### OnInit
 &emsp;&emsp;使用 ngOnInit 有两个重要的原因：
@@ -746,94 +858,28 @@ ViewEncapsulation.Native - 使用原生的 Shadow DOM 特性。
 
 &emsp;&emsp;在 Angular2 的组件中，经常会使用 ngOnInit 获取数据，那为什么不在组件构造函数中获取数据呢？因为构造函数做的事，应该是尽可能简单的，例如初始化局部变量这种简单的事情。这对于有经验的开发人员来说，已经是一种共识。另外，这对于 Angular2 的自动化测试也有非常重要的作用，因为编写测试代码的开发人员，不需要担心一个新的组件在测试或者创建之前会尝试连接远程服务器获取数据。
 
+##### DoCheck
+&emsp;&emsp;开发者可以使用 DoCheck 钩子来检测并在 Angular 没有捕捉到自身变化的时候采取行动。通过这个方法可以检测到 Angular 忽略的这一变化。
+
+&emsp;&emsp;ngDoCheck 被调用的频率很高 —— 每一个变化检测周期后，不管是否发生了变化。大多数这些初步检查是由 Angular 在网页其他地方不相关的数据第一次渲染的时候触发，例如简单地将鼠标移到另一个输入框就会触发调用。显然，ngDoCheck 方法中不能写一些复杂的代码，否则用户体验就会受到影响。
+
+##### AfterContentInit
+&emsp;&emsp;ngAfterContentInit 会在 Angular 将外部内容放到视图内之后调用。
+
+##### AfterContentChecked
+&emsp;&emsp;ngAfterContentChecked 会在 Angular 检测放到视图内的外部内容的绑定后调用。
+
+##### AfterViewInit
+&emsp;&emsp;ngAfterViewInit 会在 Angular 创建了组件视图之后被调用。
+
+##### AfterViewChecked
+&emsp;&emsp;ngAfterViewChecked 在 Angular 检测了组件视图的绑定之后调用。
+
 ##### OnDestroy
 &emsp;&emsp;组件在被销毁之前会触发这个勾子，ngOnDestroy 会被调用。建议把组件成员变量等东西的清理逻辑放到 ngOnDestroy 中，它是在指令/组件销毁之前必定运行的逻辑。在这个时候可以通知另一部分关心的程序，这个组将将要被销毁。
 
 &emsp;&emsp;不会被垃圾处理自动收集的资源应当在这个地方去释放，例如订阅了的观察者事件，绑定过的 DOM 事件，通过 setTimeout 或 setInterval 设置过的计时器等，都应当在 ngOnDestroy 中去注销、删除所有与该组件相关的回调。如果忽略这些的话，会导致一些意想不到的后果，并有可能导致内存泄漏。
 
-*todo以下待修改*
-
-**OnChanges**
-&emsp;&emsp;我们监测这个例子中OnChanges钩子。只要检测到组件的输入属性部分发生变化，angular就调用其ngOnChanges方法。
-下面是我们钩子的实现：
-
-```typescript
-ngOnChanges(changes: {[propertyName: string]: SimpleChange}) {
-  for (let propName in changes) {
-    let prop = changes[propName];
-    let cur  = JSON.stringify(prop.currentValue)
-    let prev = JSON.stringify(prop.previousValue);
-    this.changeLog.push(`${propName}: currentValue = ${cur}, previousValue = ${prev}`);
-  }
-}
-```
-&emsp;&emsp;该ngOnChanges方法接受一个对象映射每个更改的属性名称与当前和以前的属性值的 SimpleChange 对象，我们遍历更改的属性并记录下它们。
-在我们的例子OnChangesComponent输入属性是heros和power。
-
-```typescript
-@Input() hero: Hero;
-@Input() power: string;
-```
-&emsp;&emsp;父组件像这样绑定它们：
-
-```typescript
-<on-changes [hero]="hero" [power]="power"></on-changes>
-```
-&emsp;&emsp;运行实例时能看到 power 属性变化的字符串值，但 ngOnChanges 没有捕捉到 hero.name 的变化，这看起来很奇怪。
-angular 仅调用挂接的输入属性值的更改，hero 属性值是参照 hero对象，hero 对象的引用并没有变化，angular不关心 hero 自身名字属性的变化。因此，从 angular 的角度来说这是没有变化的。
-
-> 我们第一个访问这些属性的机会在ngOnInit前是 angular 调用  ngOnChanges 方法之前。angular 会多次调用ngOnChanges但只调用ngOnInit一次。
-
-**DoCheck**
-&emsp;&emsp;我们可以使用DoCheck钩子来检测并在angular没有捕捉到自身变化的时候采取行动。通过这个方法我们可以检测到 angular 忽略的这一变化，使用这些信息刷新显示就是另外一回事了。
-&emsp;&emsp;ngDoCheck钩子的调用有巨大的频率－每一个变化检测周期后，不管发生变化的地方。大多数这些初步检查是由angular在网页其他地方不相关的数据第一次渲染的时候触发，单纯的将鼠标移到另一个输入框就会触发调用，相对较少的调用才有相关数据的实际变化。很明显，我们的实现必须很轻否则用户体验就会受到影响。
-
-**AfterView**
-&emsp;&emsp;AfterViewChecked和AfterViewInit钩子根据子视图中值的变化采取行动，我们只能通过查询子视图的属性描述 @ViewChild 延伸。
-
-&emsp;&emsp;我们必须遵循angular的单项数据流原则，当它组成后我们可能不会更新视图。当组件的视图已经渲染完毕后这两个钩子会被触发。
-&emsp;&emsp;如果我们立即更新组件的数据绑定 comment 属性，angular会抛出一个错误。setTimeout推迟了浏览器的javascript循环更新一周，这个时间已经足够长了。
-
-&emsp;&emsp;注意，angular经常调用AfterViewChecked，往往没有有意义的变化。写单一的钩子方法能避免性能问题。
-
-**AfterContent**
-&emsp;&emsp;AfterContent例子是探索angular何时调用AfterContentInit和AfterContentChecked挂钩以angular项目外部的内容到组件。
-内容投影是一种从外面向组件导入HTML内容和将该内容插入组件模版指定点的方法。
-
-&emsp;&emsp;当指令的数据绑定属性已经初始化并且子组件未被检查的时候，通过这个接口来执行自定义的初始化逻辑，只有该指令第一次被实例化它才会被调用。
-
-
-&emsp;&emsp;最后，这些事件处理程序必须在控制器的原型上定义，否则 angular 无法在适当的时候调用它们。
-
-```typescript
-//...
-function ProtoController() {
-	this.bindType = "Defined on constructor prototype.";
-}
-ProtoController.prototype = {
-	ngOnInit: function() {
-		console.log( "ngOnInit:", this.bindType );
-	},
-	ngOnDestroy: function() {
-		console.log( "ngOnDestroy", this.bindType )
-	}
-};
-
-function InstanceController() {
-	var bindType = "Defined on instance.";
-	this.ngOnInit = function() {
-	    console.log( "ngOnInit:", bindType );
-	};
-	this.ngOnDestroy = function() {
-	    console.log( "ngOnDestroy:", bindType );
-	};
-}
-```
-&emsp;&emsp;我们会发现，这些事件处理器只有定义在控制器的原型（如ProtoComponent组件的ProtoController.prototype）上才会被调用，InstanceController中声明的并没有起作用。
-
-&emsp;&emsp;使用属性装饰所有生命周期钩子，而不使用接口
-&emsp;&emsp;目前组件和路由组件的生命周期都是通过接口定义的（例如Oninit），这存在一些问题，因为这些接口在Javascript中没有运行时的表现。所以在运行时如果我们调用了它，我们只是检查接口中是否定义了这些方法，它们在组件实例中是否存在。如果组件中有一个 onInit方法，这并不意味着它会成为一个生命周期钩子，但我们仍然会调用它。
-&emsp;&emsp;这些命名冲突可能会导致意想不到的结果，如果我们增加新的生命周期钩子，可能破坏现有的组件。基于这些原因，建议大家使用属性描述来取代接口的定义。
 
 #### 2.6.2 路由勾子
 
