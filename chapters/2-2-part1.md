@@ -263,7 +263,7 @@ bootstrap(HelloWorldComponent, [])
 
 &emsp;&emsp;属性绑定（Property Bindings），开发者可以通过`[]`将组件中的属性绑定到模板上，这样当组件中的属性变化时，Angular2 的变化检测机制便会自动更新该组件的对应视图。
 
-*（此处应有图）*
+*todo（此处应有图）*
 图2-2 Angular2 组件的数据流
 
 &emsp;&emsp;相对于组件的模板来说，属性绑定是一种`数据输入`，用`@Input`定义，通过`[]`语法调用；事件绑定则是`数据输出`，使用`@Output`定义，通过`()`语法调用。
@@ -612,8 +612,67 @@ export class ContactDetail implements OnInit, OnDestroy {
 
 &emsp;&emsp;自定义内容通用用来创建可复用的组件，典型的例子是模态对话框或导航栏。想像一下，在开发 Web 应用的时候，模态对话框和导航栏是使用得非常频繁的功能，自定义内容的特性正是提供了一种复用的方式，使得复用的组件具有样式完全一致的，但内容可自定义的组件。
 
-*todo demo中需要补充自定义内容的例子*
+&emsp;&emsp;假设有一个“黑色边框”的组件，叫 BlackBoarder，我们把这个组件的外观统一成黑色的边框，无论里面的内容怎么变化。假设它的模板是这样子：
 
+```html
+<div style="border:1px solid black">
+  <ng-content></ng-content>
+</div>
+```
+
+&emsp;&emsp;然后，你在其他地方使用了这个组件：
+
+```html
+<black-border>
+  <h1>This is the content of black board!</h1>
+</black-border>
+```
+
+&emsp;&emsp;最后模板会被渲染成：
+
+```html
+<div style="border:1px solid black">
+  <h1>This is the content of black board!</h1>
+</div>
+```
+
+&emsp;&emsp;甚至还可以通过选择器来指定 ng-content，假设有一个叫 BoarderComponent 的组件的模板如下：
+
+```html
+<div style="border:1px solid black">
+  <ng-content select="header"></ng-content>
+</div>
+<div style="border:1px solid red">
+  <ng-content select="div.body"></ng-content>
+</div>
+<div style="border:1px solid orange">
+  <ng-content select="footer"></ng-content>
+</div>
+```
+
+&emsp;&emsp;然后在别的地方这样去使用它：
+
+```html
+<borders-component>
+  <header>I'm a header</header>
+  <div class="body">I'm a body</div>
+  <footer>I'm a footer</footer>
+</borders-component>
+```
+
+&emsp;&emsp;渲染后的结果是：
+
+```html
+<div style="border:1px solid black">
+  <header>I'm a header</header>
+</div>
+<div style="border:1px solid red">
+  <div class="body">I'm a body</div>
+</div>
+<div style="border:1px solid orange">
+  <footer>I'm a footer</footer>  
+</div>
+```
 
 #### 2.5.3 @Component 的其他元数据
 
@@ -793,6 +852,114 @@ export class MyList implements AfterContentInit {
 - ViewEncapsulation.None - 无 Shadow DOM，并且也无样式包装。
 - ViewEncapsulation.Emulated - 无 Shadow DOM，但是通过 Angular2 提供的样式包装机制来模拟组件的独立性，使得组件的样式不受外部影响。
 - ViewEncapsulation.Native - 使用原生的 Shadow DOM 特性。
+
+###### ViewEncapsulation.None
+&emsp;&emsp;Angular 不使用 Shadow DOM。应用在组件的样式会被写到 Document 头部。
+
+&emsp;&emsp;假设有一个 Hello 的组件和模板如下：
+
+```typescript
+import {ViewEncapsulation} from '@angular/core';
+
+@Component({
+  selector: 'hello',
+  templateUrl: 'hello.html',
+  styles: [`
+    .hello {
+      background: green;
+    }
+  `],
+  encapsulation: ViewEncapsulation.None
+})
+class Hello {
+}
+```
+
+```html
+<div class="hello">
+  <h1>Hello World</h1>
+</div>
+```
+
+&emsp;&emsp;Angular 会将其渲染成：
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .hello { 
+        background: green;
+      }
+    </style>
+  </head>
+  <body>
+    <hello>
+      <div class="hello">
+        <h1>Hello World</h1>
+      </div>
+    </hello>
+  </body>
+</html>
+```
+
+&emsp;&emsp;ViewEncapsulation.None 设置的结果是没有 Shadow DOM，并且所有的样式都是应用到整个 document，换句话说，组件的样式可以被覆盖。
+
+###### ViewEncapsulation.Emulated
+&emsp;&emsp;无 Shadow DOM，但是通过 Angular2 提供的样式包装机制来模拟组件的独立性，使得组件的样式不受外部影响。这是 Angular2 的默认选项。
+
+&emsp;&emsp;这是个强大的功能，组件间的样式是相互独立不影响的，这样怎么做到的呢？还是刚才的例子，使用了这个设置后，Angular 会将它渲染为：
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .hello[_ngcontent-1] { 
+        background: green;
+      }
+    </style>
+  </head>
+  <body>
+    <hello _ngcontent-0 _nghost-1>
+      <div class="hello" _ngcontent-1>
+        <h1>Hello World</h1>
+      </div>
+    </hello>
+  </body>
+</html>
+```
+
+&emsp;&emsp;虽然样式仍然是应用到整个 document，但是 Angular 为`.hello`创建了一个`[_ngcontent-1]`选择器。没错，组件的样式选择被 Angular 修改了，并且在组件的属性里也添加上了这个选择器。那`_ngcontent-0`和`_nghost-1`又是干什么用的呢？为了实现局部的样式，Angular 需要保证某个组件的样式只会匹配到该组件，所以给组件添加了`_ngcontent-0`和`_nghost-1`属性。
+
+###### ViewEncapsulation.Native
+&emsp;&emsp;使用原生的 Shadow DOM 特性。理解这个就非常简单了，Angular 会把组件以浏览器支持的 Shadow DOM 形式渲染，像刚才的例子在浏览器中能看到这样的结构：
+
+```html
+<!DOCTYPE html>
+<html>
+  <head>
+    <style>
+      .hello[_ngcontent-1] { 
+        background: green;
+      }
+    </style>
+  </head>
+  <body>
+    <hello>
+      #shadow-root
+      | <style>
+      |   .hello {
+      |     background: green;
+      |   }
+      | </style>
+      | <div class="hello">
+      |  <h1>Hello World</h1>
+      | </div>
+    </hello>
+  </body>
+</html>
+```
 
 ### 2.6 组件的生命周期
 
