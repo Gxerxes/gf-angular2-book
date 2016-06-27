@@ -1,12 +1,6 @@
 ## 什么是Typescript?
-Javascript是一种弱类型的语言，在开发一些小型项目，UI交互的时候很灵活，方便。
-但是当项目变的庞大的时候，就显露出很明显的弊端。
-设想你在重构一大堆老代码，没有单元测试。改了一段代码之后不在浏览器里面跑一跑还真的不敢确定是不是有问题。这通常是前端的一个痛点。
-静态语言有比较强大的代码重构工具。一些很明显的问题能在编译阶段发现。
-
-Typescript把类型带入了Javascript的世界。它是Javascript的超集，即所有合法的js都是Typescript。但是它可以有类型。
-运行的时候Typescript被tsc编译器翻译成可读性很高的Javascript在浏览器执行。
-
+TypeScript是一种由微软开发的自由和开源的编程语言。它是**ES6**的一个超集，所以也是**JavaScript**的一个超集，本质上是向JS语言添加了可选的静态类型和基于类的面向对象编程。
+Javascript是一种弱类型的语言，这种简单粗暴的编写模式随着前端在软件开发的地位增强而显得越发无力。类型检查，面向对象，泛型，模块化等这些服务端玩了几十年的语言功能，对前端开发者来说是时候享受这些特性带来的乐趣了，Typescript正是提供了这个魔术棒，让开发者们遨游在面向对象开发的世界里，虽然最后还是编译成目前浏览器所能识别的JavaScript代码。
 ### 如果有很多js代码，项目中不好上手怎么办？
 虽然typescript给了你type的能力。不意味着给了你太多的限制。
 1. 它支持自动类型推断。一些很明显的类型，编译器可以智能推断出来，比如。**var x = 1;**
@@ -14,9 +8,23 @@ Typescript把类型带入了Javascript的世界。它是Javascript的超集，�
 即使类型匹配失败，仍然会生成javascript。你可以逐渐把js代码慢慢迁移到typescript上。
 
 ### 基本类型
-Typescript提供了boolean, number, string, array, enum, any, void几种基本类型。
+Typescript提供了boolean, number, string, array, tuple,enum, any, void几种基本类型。
+
+#### 布尔值
+最简单的数据类型，值为true/false，在Typescript中类型名为boolean
 
 ```typescript
+let flag: boolean = true;
+```
+#### 数字
+Typescript的数字都是浮点类型，也支持ECMScript2015中的二进制跟八进制字面量。
+
+```typescript
+let decLiteral: number = 6;
+let hexLiteral: number = 0xf00d;
+let binaryLiteral: number = 0b1010;
+let octalLiteral: number = 0o744;
+
 var flag: boolean = true;
 var s: string = 'hello';
 var n: number = 123;
@@ -26,6 +34,60 @@ var color: Color = Color.Green;
 
 function log(msg: string): void {
 	console.log(`${new Date().toUTCString()} ${msg}`);
+}
+```
+#### 字符串 
+跟JavaScript中的字符串一样，用单引号（'）或双引号（“）隔开，另外，Typescript还支持C#等常用的模板字符串,可以定义多行文本和内嵌表达式，用反引号（`）以 ${ expr } 方式嵌入。类似C#中的String.format，在处理拼接字符串的时候很有用。
+
+``` typscript
+let name: string = `GF Security`;
+let years: number = 25;
+let words: string = `你好, ${ name }.
+								今年是成立 ${ years + 1 } 周年了.`;
+```
+
+#### 数组 
+跟JavaScript操作数组一样，typescript有两种方式可以定义。
+
+``` typescript
+	let array:  number[] = [1,2];
+	let arrayList: Array<number> = [1,2];
+```
+#### 元组
+元组类型可以创建一个指定数量跟类型的数组，类型可以不相同，比如可以把年龄跟名字放在同一个元组内。
+
+``` typescript
+	let x: [string, number];
+	x = ['广发证券', 25]; // OK
+	x = [10, '广发证券']; // Error
+```
+#### 枚举
+enum 类型是对JavaScript类型的一个补充，像c语言等其它一样，用enum可以为一个数组赋予有意义的名字，增强可读性。
+
+``` typescript
+	enum Color {Red, Green, Blue};
+	let c: Color = Color.Green;
+```
+同c语言等一样，默认下标是0，可以手动修改默认下标值。
+
+``` typescript
+	enum Color {Red = 1, Green, Blue};
+	let c: Color = Color.Green;
+```
+#### 任意值
+任意值是typescript针对数据类型不明确的时候可使用的一种类型，这可能是来自动态内容，也可能是第三方库导出，any能跳过编译阶段的类型错误检查。
+
+``` typescript
+	let notSure: any = 4;
+	notSure = "maybe a string instead"; // string
+	notSure = false; // boolean
+```
+#### 空值
+void表示没有任何类型。 当一个函数没有返回值时，你通常会见到其返回值类型是void,跟C#等语言一样：
+
+``` typescript
+function hello(): void {
+    alert("helloworld");
 }
 ```
 
@@ -413,3 +475,5 @@ tsd install jquery --save
 ###编辑器
 typescript可以有非常强大的类型提示。官方推荐VS作为typescript的编辑器，可惜VS对前端开发童鞋实在不习惯。
 喜欢IDE的可以试试WebStorm或atom。atom的插件 [atom-typescript](https://atom.io/packages/atom-typescript) 很不错。
+
+
