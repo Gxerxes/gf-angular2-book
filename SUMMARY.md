@@ -2,7 +2,7 @@
 
 * [前言](README.md)
 * [第一部分 - Angular2 入门](chapters/part1.md)
-   * [1.1 走进前端新时代](chapters/1.1.md)
+   * [1.1 走进前端新时代 - (Progress 50%)](chapters/1.1.md)
    * [1.2 Angular2 简介 - (Progress 60%)](chapters/1.2.md)
    * [1.3 TypeScript 简介](chapters/1.3.md)
    * [1.4 快速上手](chapters/1.4.md)
@@ -16,5 +16,9 @@
    * [2.7 路由](chapters/2.7.md)
    * [2.8 测试](chapters/2.8.md)
 * [第三部分 - 实战开发](chapters/part3.md)
-  * [3.1 ](chapters/3.1.md)
+  * [3.1 案例背景 - (Progress 100%)](chapters/3.1.md)
+  * [3.2 主要特性 - (Progress 100%)](chapters/3.2.md)
+  * [3.3 产品设计 - (Progress 50%)](chapters/3.3.md)
+  * [3.4 项目实施 - (Progress 40%)](chapters/3.4.md)
+  * [3.5 组件开发 - (Progress 30%)](chapters/3.5.md)
 
