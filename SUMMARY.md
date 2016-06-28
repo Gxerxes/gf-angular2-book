@@ -5,7 +5,7 @@
    * [1.1 走进前端新时代 - (Progress 50%)](chapters/1.1.md)
    * [1.2 Angular2 简介 - (Progress 60%)](chapters/1.2.md)
    * [1.3 TypeScript 简介](chapters/1.3.md)
-   * [1.4 快速上手](chapters/1.4.md)
+   * [1.4 快速上手 - (Progress 90%)](chapters/1.4.md)
 * [第二部分 - 深入理解](chapters/part2.md)
    * [2.1 架构总览](chapters/2.1.md)
    * [2.2 组件](chapters/2-2.md)
