@@ -102,41 +102,229 @@ void表示没有任何类型。 当一个函数没有返回值时，你通常会
 
 ##1.3.3 类
 
-类的语法和ES6的Class类似，有constructor，可以继承。这里列举几点不同。
+传统的JavaScript程序使用函数和基于原型的继承来创建可重用的组件。 在TypeScript里，可以使用基于类的面向对象方法,并且编译后的JavaScript可以在所有主流浏览器和平台上运行。所以TypeScript对于用惯了面向对象方式的程序员来说来说相当友好。
 
-### 属性声明
-ES6的class属性是直接赋值给this.varName声明的，typescript里面需要显示声明。
+### 类的说明
+
+下面看一个使用类的例子。
+
     ```typescript
-    class Point{
-    	x: number;
-    	y: number;
-    }
+    class Car {
+	    engine: string;
+	    constructor(engine: string) {
+	        this.engine = engine;
+	    }
+	    drive(distanceInMeters: number = 0) {
+	        return "A car runs ${distanceInMeters}m  powered by" + this.engine;
+	    }
+	}
+
+	let car = new Car("petrol");
     ```
-### 构造函数属性声明
-属性也可以在构造函数中添加public, private描述声明。
+上面声明一个Car类。这个类有3个成员：一个叫做engine的属性，一个构造函数和一个drive方法。注意到Car的属性engine，它表示我们访问的是类的成员。
+
+let car = new Car("petrol")使用new构造了Car类的一个实例。 它会调用之前定义的构造函数，创建一个 Car类型的新对象，并执行构造函数初始化它。
+
+### 继承
+熟悉面向对象的人都了解，讲到类，肯定要提继承的，基于类的程序设计中最基本的模式是允许使用继承来扩展一个类。
+
+看下面的例子。
+
     ```typescript
-    class Point{
-    	constructor (public x:number, public y:number){}
-    }
+	
+	class MotoCar extends Car {
+    	constructor(engine: string) { super(engine); }
+	    drive(distanceInMeters = 50) {
+	        console.log("motoCar...");
+	        super.move(distanceInMeters);
+	    }
+	}
+	
+	class Jeep extends Car {
+	    constructor(engine: string) { super(engine); }
+	    drive(distanceInMeters = 100) {
+	        console.log("Jeep...");
+	        super.move(distanceInMeters);
+	    }
+	}
+	
+	let tesla = new MotoCar("electricity");
+	let landRover: Car = new Jeep("petrol");
+	
+	tesla.drive();
+	landRover.move(200);
     ```
+ 
+从上面的例子可以看到：MotoCar和Jeep 类是基类Car的子类，用extends来创建子类。并且子类可以访问父类属性和方法。
 
-### 支持public, private, static描述
-ES6的static只支持在函数上声明，而typescript支持方法和属性。
+同时例子也说明了如何在子类里可以重写父类的方法。 MotoCar和Jeep都创建了drive方法，重写了从Car继承来的drive方法，使得drive方法根据不同的类而具有不同的功能。 注意，即使landRover被声明为Car类型，它依然是个Jeep，landRover.move(200)调用Jeep里的重写方法;包含constructor函数的派生类必须调用super()，它会执行基类的构造方法。
+
+### 公共，私有、受保护的修饰符和参数属性
+
+**默认为公有public**
+
+在上面的例子里，我们可以自由的访问程序里定义的成员,是因为在TypeScript里，每个成员默认为 public的。把上面的Car类加上public后，
+如下所示：
 
     ```typescript
-    class Popup{
-    static inst: Popup;
-    constructor() {
-    if (!Popup.inst) {
-    Popup.inst = this;
-    }
-    }
-    static getInstance() {
-    return new Popup();
-    }
+    class Car {
+	    public engine: string;
+	    public constructor(engine: string) {
+	        this.engine = engine;
+	    }
+	    public drive(distanceInMeters: number = 0) {
+	        return "A car runs ${distanceInMeters}m  powered by" + this.engine;
+	    }
+	}
+    ```
+**private**
+
+当成员被标记成private时，它就不能在声明它的类的外部访问。比如：
+
+    ```typescript
+    class Car {
+    	private engine: string;
+	    constructor(engine: string) {
+	        this.engine = engine;
+	    }
+	}
+
+	new Car("petrol").engine; // Error: 'engine' is private;
+	```
+
+**protected**
+
+protected修饰符与private修饰符的行为很相似，但有一点不同，protected成员在派生类中仍然可以访问。例如：
+
+    ```typescript
+	 class Car {
+	   	protected engine: string;
+	   	constructor(engine: string) {
+	        this.engine = engine;
+	    }
+	    drive(distanceInMeters: number = 0) {
+	        return "A car runs ${distanceInMeters}m  powered by" + this.engine;
+	    }
+	}
+	
+	class MotoCar extends Car {
+    	constructor(engine: string) { super(engine); }
+	    drive(distanceInMeters = 50) {
+	        console.log("motoCar powered by"+this.engine );
+	        super.move(distanceInMeters);
+	    }
+	}
+	
+	
+	let tesla = new MotoCar("electricity");
+	console.log(tesla.drive());
+	console.log(tesla.engine);
+
+    ```
+注意，不能在Car类外使用engine，但是仍然可以通过MotoCar类的实例方法访问，因为MotoCar是由Car派生出来的。
+
+**参数属性**
+
+参数属性通过给构造函数参数添加一个访问限定符来声明。 使用 private限定一个参数属性会声明并初始化一个私有成员；对于public和protected来说也是一样。参数属性可以方便地让我们在一个地方定义并初始化一个成员。 下面的例子是对之前 Car类的修改版，使用了参数属性：
+
+   	```typescript
+	 class Car {
+	    constructor(protected engine: string) {}
+		drive(distanceInMeters: number = 0) {
+	        return "A car runs ${distanceInMeters}m  powered by" + this.engine;
+	    }
+	}
+
+    ```
+仅在构造函数里使用protected engine: string参数来创建和初始化engine成员,从而把声明和赋值合并至一处。
+
+### 存取器
+
+TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成员的访问，外部可以通过getters/setters来访问设置和类的私有成员。看下面的例子：
+
+   	```typescript
+	 class Car {
+		private _carColor:String
+
+	    constructor(protected engine: string) {}
+
+	    getCarcolor(): string {
+	        return this._carColor;
+	    }
+	
+	    setCarcolor(color: string) {
+	         this._carColor = color;
+	    }
+	}
+
+	let redCar = new  Car("petrol");
+	redCar.setCarcolor('red');
+	console.log(redCar.getCarcolor());
+
+    ```
+注意：若要使用存取器，要求设置编译器输出目标为ECMAScript 5或更高
+
+### 静态属性
+
+类的静态成员存在于类本身上面而不是类的实例上。  如同在实例属性上使用 `this.前缀`来访问属性一样，这里我们使用*类名.*来访问静态属性。
+
+    ```typescript
+    class Grid {
+	    static origin = {x: 0, y: 0};
+	    calculateDistanceFromOrigin(point: {x: number; y: number;}) {
+	    let xDist = (point.x - Grid.origin.x);
+	    let yDist = (point.y - Grid.origin.y);
+	    return Math.sqrt(xDist * xDist + yDist * yDist) / this.scale;
+	    }
+	    constructor (public scale: number) { }
     }
     
-    Popup.getInstance();
+    let grid1 = new Grid(1.0);  // 1x scale
+    let grid2 = new Grid(5.0);  // 5x scale
+    
+    console.log(grid1.calculateDistanceFromOrigin({x: 10, y: 10}));
+    console.log(grid2.calculateDistanceFromOrigin({x: 10, y: 10}));
+    
+    ```
+
+### 抽象类
+
+抽象类是供其它类继承的基类，一般不会直接被实例化。 不同于接口，抽象类可以包含成员的实现细节。 abstract关键字是用于定义抽象类和在抽象类内部定义抽象方法。抽象类中的抽象方法不包含具体实现并且必须在派生类中实现。
+
+	 ```typescript
+    abstract class Department {
+    
+	    constructor(public name: string) {}
+	    
+	    printName(): void {
+	    	console.log('Department name: ' + this.name);
+	    }
+	    
+	    abstract printMeeting(): void; // 必须在派生类中实现
+	}
+	    
+	class AccountingDepartment extends Department {
+	    
+	    constructor() {
+	    	super('Accounting and Auditing'); // constructors in derived classes must call super()
+	    }
+	    
+	    printMeeting(): void {
+	    	console.log('The Accounting Department meets each Monday at 10am.');
+	    }
+	    
+	    generateReports(): void {
+	    	console.log('Generating accounting reports...');
+	    }
+    }
+    
+    let department: Department; // ok to create a reference to an abstract type
+    department = new Department(); // error: cannot create an instance of an abstract class
+    department = new AccountingDepartment(); // ok to create and assign a non-abstract subclass
+    department.printName();
+    department.printMeeting();
+    department.generateReports(); // error: method doesn't exist on declared abstract type
+    
     ```
 
 ##1.3.4 函数
