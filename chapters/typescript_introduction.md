@@ -512,50 +512,222 @@ Typescript模块包括内部模块和外部模块两种。
     
 ##1.3.6 接口
 
-typescript和其他解释性语言采取了类似的类型系统，duck typing。它听起来像鸭子看起来像鸭子就是鸭子。
-而这个类型有可以由接口来描述。它强大到可以描述js内一切东西。
+### 接口初探
+
+TypeScript的核心原则之一是对值所具有的shape进行类型检查。 它有时被称做“鸭式辨型法”或“结构性子类型化”。 在TypeScript里，接口的作用就是为这些类型命名和为你的代码或第三方代码定义契约。下面通过一个简单示例来观察接口是如何工作的：
     
     ```typescript
-    interface Name {
-    first: string;
-    second: string;
+    interface FullName {
+	    firstName: string;
+	    secondName: string;
+    }
+
+	function printLabel(name:FullName) {
+  		console.log(name.firstName+" "+name.secondName);
+	}
+
+	let myObj = {age: 10, firstName: 'Jim', secondName: 'Raynor'};
+
+	printLabel(myObj);
+    ```
+从上面的例子可以看出：接口来FullName必须包含一个firstName属性和secondName属性且类型都为string。
+
+这里有两点需要注意：
+
+1.这里并不能像在其它语言里一样，传给 printLabel的对象实现了这个接口，指的是“形式上的满足”，即该对象必须包含一个firstName属性和secondName属性且类型都为string。
+
+2. 接口类型检查器不会去检查属性的顺序，只要相应的属性存在并且类型也是对的就可以
+	
+### 可选属性
+
+可选属性在应用“option bags”模式时很常用，即给函数传入的参数对象中只有部分属性赋值了。带有可选属性的接口与普通的接口定义差不多，只是在可选属性名字定义的后面加一个?符号。下面通过一个例子来说明：
+
+    ```typescript
+	 interface FullName {
+	    firstName: string;
+	    secondName?: string;
+    }
+	function printLabel(name:FullName) {
+	
+  		console.log(name.firstName+" "+name.secondName);
+	}
+
+	let myObj = {firstName: 'Jim', secondName: 'Raynor'};
+
+	printLabel(myObj);
+	 ```
+
+可选属性有两个好处：一是可以对可能存在的属性进行预定义；二是可以捕获引用了不存在的属性时的错误。 比如，将printLabel里的secondName属性名拼错成second，就会得到一个错误提示。
+
+### 额外的属性检查
+
+  ```typescript
+	 interface FullName {
+	    firstName: string;
+	    secondName?: string;
+    }
+	function printLabel(name:FullName) {
+	
+  		console.log(name.firstName+" "+name.secondName);
+	}
+
+	let myObj = {age: 10, firstName: 'Jim', secondName: 'Raynor'};
+
+	printLabel(myObj);
+	 ```
+ 上面的例子编译时会报错：.... property'age' does not exist in type 'FullName',使用了可选属性就不能像就不能像接口初探里面的例子，给函数多传属性了。
+
+加了可选属性后，对象字面量会被特殊对待而且会经过额外属性检查，当将它们赋值给变量或作为参数传递的时候。如果一个对象字面量存在任何“目标类型”不包含的属性时，就会编译失败。
+绕开这些检查非常简单。 最好而简便的方法是使用类型断言
+
+     ```typescript
+    printLabel({age: 10, firstName: 'Jim', secondName: 'Raynor'} as  FullName);
+    ```
+
+另一个方法，就是将一个对象赋值给另一个变量：
+
+     ```typescript
+    let myObj = {age: 10, firstName: 'Jim', secondName: 'Raynor'};
+    printLabel(myObj);
+     ```
+
+对于包含方法和内部状态的复杂对象字面量来讲，你可能需要使用这些技巧。但是一般出现额外属性检查错误有可能会是真正的bug。 就是说你遇到了额外类型检查出的错误，比如选择包，你应该去审查一下你的类型声明。
+
+### 函数类型
+
+接口能够描述JavaScript中对象拥有的各种各样的外形。 除了描述带有属性的普通对象外，接口也可以描述函数类型，如下例所示：
+
+ 	```typescript
+    interface SearchFunc {
+  		(source: string, subString: string): boolean;
+	}
+     ```
+
+为了使用接口表示函数类型，我们需要给接口定义一个调用签名。 它就像是一个只有参数列表和返回值类型的函数定义。参数列表里的每个参数都需要名字和类型。这样定义后，我们可以像使用其它接口一样使用这个函数类型的接口。 下例展示了如何创建一个函数类型的变量，并将一个同类型的函数赋值给这个变量。
+
+     ```typescript
+     let mySearch: SearchFunc;
+     mySearch = function(src: string, sub: string) {
+     	let result = src.search(sub);
+      	if (result == -1) {
+    		return false;
+      	}
+      	else {
+    		return true;
+      	}
+     }
+     ```
+对于函数类型的类型检查来说，函数的参数名不需要与接口里定义的名字相匹配。 函数的参数会逐个进行检查，要求对应位置上的参数类型是兼容的。  函数的返回值类型是通过其返回值推断出来的（此例是 false和true）。 如果让这个函数返回数字或字符串，类型检查器会警告我们函数的返回值类型与 SearchFunc接口中的定义不匹配。
+
+### 数组类型
+数组类型具有一个 index类型表示索引的类型，还有一个相应的返回值类型表示通过索引得到的元素的类型。支持两种索引类型：string和number。 数组可以同时使用这两种索引类型，但是有一个限制，数字索引返回值的类型必须是字符串索引返回值的类型的子类型。
+
+    ```typescript
+    interface StringArray {
+      [index: number]: string;
     }
     
-    var name: Name;
-    name = {
-    first: 'Jim',
-    second: 'Raynor'
-    };
+    let myArray: StringArray;
+    myArray = ["Bob", "Fred"];
+ 	```
+### 类类型
+
+与C#或Java里接口的基本作用一样，TypeScript也能够用它来明确的强制一个类去符合某种契约。
     
-    name = {   // Error : `second` is missing
-    first: 'Jim'
-    };
-    name = {   // Error : `second` is the wrong type
-    first: 'Jim',
-    second: 1337
-    };
-    ```
-第二个和第三个name对象由于却少相应的属性抛出类型不匹配的错误。
+    ```typescript
+    interface ClockInterface {
+    	currentTime: Date;
+    }
+    
+    class Clock implements ClockInterface {
+    	currentTime: Date;
+    	constructor(h: number, m: number) { }
+    }
+	```
 
-
-### 更多接口描述
-Interface可以支持更为复杂的对象描述，如：
+可以在接口中描述一个方法，在类里实现它，如同下面的setTime方法一样：
 
     ```typescript
-    interface FooType {
-    	(arg: string):void;	// 可以被当作函数调用 myFunc('hello');
-    	new (): Object; // 可以被当作构造函数 new myFunc();
-    	[idx:number]:string; // 支持下标 myFunc[3];
-    	name: string; // 支持属性 myFunc.name
-    	name?: number; // 可选属性
-    	id: string|number // 属性可以是某一种类型
-    	innerFunc():void; // 成员函数 myFunc.innerFunc();
+    interface ClockInterface {
+    	currentTime: Date;
+    	setTime(d: Date);
+    }
     
-    };
+    class Clock implements ClockInterface {
+    	currentTime: Date;
+    	setTime(d: Date) {
+    		this.currentTime = d;
+    	}
+    	constructor(h: number, m: number) { }
+    }
+	```
+
+接口描述了类的公共部分，而不是公共和私有两部分。 它不会帮你检查类是否具有某些私有成员。
+
+### 扩展接口
+
+和类一样，接口也可以相互扩展。 这让我们能够从一个接口里复制成员到另一个接口里，可以更灵活地将接口分割到可重用的模块里。
+
+    ```typescript
+    interface Shape {
+    	color: string;
+    }
     
+    interface Square extends Shape {
+    	sideLength: number;
+    }
+    
+    let square = <Square>{};
+    square.color = "blue";
+    square.sideLength = 10;
     ```
 
-### type别名
+一个接口可以继承多个接口，创建出多个接口的合成接口。
+
+    ```typescript
+    interface Shape {
+    	color: string;
+    }
+    
+    interface PenStroke {
+    	penWidth: number;
+    }
+    
+    interface Square extends Shape, PenStroke {
+    	sideLength: number;
+    }
+    
+    let square = <Square>{};
+    square.color = "blue";
+    square.sideLength = 10;
+    square.penWidth = 5.0;
+	```
+
+### 混合类型
+
+由于JavaScript其动态灵活的特点，有时希望一个对象可以同时具有上面提到的多种类型。下面这个例子里面一个对象可以同时做为函数和对象使用，并带有额外的属性。
+
+    ```typescript
+    interface Counter {
+    	(start: number): string;
+    	interval: number;
+    	reset(): void;
+	}
+	
+	function getCounter(): Counter {
+	    let counter = <Counter>function (start: number) { return "123"; };
+	    counter.interval = 123;
+	    counter.reset = function () { };
+	    return counter;
+	}
+	
+	let c = getCounter();
+	c(10);
+	c.reset();
+	c.interval = 5.0;
+    ```
+
+## type别名
 类型可以通过type关键字声明别名，比如：
 
     ```typescript
@@ -563,7 +735,7 @@ Interface可以支持更为复杂的对象描述，如：
     type Record = [number, string];
     ```
 
-### 周围声明
+## 周围声明
 使用Typescript的项目如果需要整合大量已经存在的js代码，需要相应的js库的 *.d.ts* 类型定义文件。
 
 并在引用的文件中声明类型依赖。
