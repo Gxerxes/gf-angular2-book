@@ -9,7 +9,7 @@
 * [第二部分 - 深入理解](chapters/part2.md)
    * [2.1 架构总览](chapters/2.1.md)
    * [2.2 组件](chapters/2-2.md)
-   * [2.3 模板 - (Progress 850%)](chapters/2.3.md)
+   * [2.3 模板 - (Progress 85%)](chapters/2.3.md)
    * [2.4 指令](chapters/2.4.md)
    * [2.5 服务](chapters/2.5.md)
    * [2.6 依赖注入](chapters/2.6.md)
