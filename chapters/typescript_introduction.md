@@ -726,33 +726,6 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
 	c.reset();
 	c.interval = 5.0;
     ```
-
-## type别名
-类型可以通过type关键字声明别名，比如：
-
-    ```typescript
-    type StrOrNum = string|number;
-    type Record = [number, string];
-    ```
-
-## 周围声明
-使用Typescript的项目如果需要整合大量已经存在的js代码，需要相应的js库的 *.d.ts* 类型定义文件。
-
-并在引用的文件中声明类型依赖。
-
-    ```typescript
-    /// <reference path="node.d.js"/>
-    ```
-
-实在太懒的话，也可以使用
-
-    ```typescript
-    declare var process:any;
-    ```
-使typescript放弃对外部依赖库的类型校验。
-
-很多常见的库的.d.ts文件开源项目DefinitelyTyped上人已经贡献了，详见下章。
-
 ##1.3.7 泛型(Generic)
 
 泛型是为了提升代码的复用性而开发的，与Java，C#中的泛型类似。
