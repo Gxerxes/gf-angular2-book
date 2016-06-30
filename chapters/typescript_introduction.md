@@ -474,7 +474,365 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 
 
 ##1.3.5 模块
-Typescript模块包括内部模块和外部模块两种。
+
+关于本节的讲解的模块要明确一点：为了与 ECMAScript 2015里的术语保持一致， “内部模块”现在称做“命名空间”。 “外部模块”现在则简称为“模块”。所以这里所说的模块即是”外部模块“
+
+### 介绍
+模块是自声明的；两个模块之间的关系是通过在文件级别上使用imports和exports建立的。TypeScript与ECMAScript 2015一样，任何包含顶级import或者export的文件都被当成一个模块。
+
+模块在其自身的作用域里执行，而不是在全局作用域里；这意味着定义在一个模块里的变量，函数，类等等在模块外部是不可见的，除非明确地使用export形式之一导出它们。 相反，如果想使用其它模块导出的变量，函数，类，接口等的时候，必须要导入它们，可以使用 import形式之一。
+
+模块使用模块加载器去导入其它的模块。 在运行时，模块加载器的作用是在执行此模块代码前去查找并执行这个模块的所有依赖。 大家最熟知的JavaScript模块加载器是服务于Node.js的 CommonJS和服务于Web应用的Require.js。
+
+### 导出
+
+**导出声明**
+
+任何声明（比如变量，函数，类，类型别名或接口）都能够通过添加export关键字来导出。
+
+	//Validation.ts
+	
+	export interface StringValidator {
+	    isAcceptable(s: string): boolean;
+	}
+	ZipCodeValidator.ts
+	
+	export const numberRegexp = /^[0-9]+$/;
+	
+	export class ZipCodeValidator implements StringValidator {
+	    isAcceptable(s: string) {
+	        return s.length === 5 && numberRegexp.test(s);
+	    }
+	}
+
+**导出语句**
+
+导出语句很便利，因为我们可能需要对导出的部分重命名，所以上面的例子可以这样改写：
+
+	class ZipCodeValidator implements StringValidator {
+	    isAcceptable(s: string) {
+	        return s.length === 5 && numberRegexp.test(s);
+	    }
+	}
+	export { ZipCodeValidator };
+	export { ZipCodeValidator as mainValidator };
+
+**重新导出**
+
+我们经常会去扩展其它模块，并且只导出那个模块的部分内容。 重新导出功能并不会在当前模块导入那个模块或定义一个新的局部变量。
+
+	ParseIntBasedZipCodeValidator.ts
+	
+	export class ParseIntBasedZipCodeValidator {
+	    isAcceptable(s: string) {
+	        return s.length === 5 && parseInt(s).toString() === s;
+	    }
+	}
+
+	// 导出原先的验证器但做了重命名
+	export {ZipCodeValidator as RegExpBasedZipCodeValidator} from "./ZipCodeValidator";
+
+或者一个模块可以包裹多个模块，并把他们导出的内容联合在一起通过语法：export * from "module"。
+
+	//AllValidators.ts
+	
+	export * from "./StringValidator"; // exports interface StringValidator
+	export * from "./ZipCodeValidator";  // exports class ZipCodeValidator
+
+### 导入
+
+模块的导入操作与导出一样简单。 可以使用以下 import形式之一来导入其它模块中的导出内容。
+
+**导入一个模块中的某个导出内容**
+
+	import { ZipCodeValidator } from "./ZipCodeValidator";
+	
+	let myValidator = new ZipCodeValidator();
+
+可以对导入内容重命名
+	
+	import { ZipCodeValidator as ZCV } from "./ZipCodeValidator";
+	let myValidator = new ZCV();
+
+**将整个模块导入到一个变量，并通过它来访问模块的导出部分**
+
+	import * as validator from "./ZipCodeValidator";
+	let myValidator = new validator.ZipCodeValidator();
+
+**具有副作用的导入模块**
+
+尽管不推荐这么做，一些模块会设置一些全局状态供其它模块使用。 这些模块可能没有任何的导出或用户根本就不关注它的导出。 使用下面的方法来导入这类模块：
+
+	import "./my-module.js";
+
+### 默认导出
+
+每个模块都可以有一个default导出。 默认导出使用 default关键字标记；并且一个模块只能够有一个default导出。 需要使用一种特殊的导入形式来导入 default导出。类和函数声明可以直接被标记为默认导出。 标记为默认导出的类和函数的名字是可以省略的。
+	
+	//ZipCodeValidator.ts
+	
+	export default class ZipCodeValidator {
+	    static numberRegexp = /^[0-9]+$/;
+	    isAcceptable(s: string) {
+	        return s.length === 5 && ZipCodeValidator.numberRegexp.test(s);
+	    }
+	}
+	
+	//Test.ts
+	
+	import validator from "./ZipCodeValidator";
+	
+	let myValidator = new validator();
+或者
+
+	StaticZipCodeValidator.ts
+	
+	const numberRegexp = /^[0-9]+$/;
+	
+	export default function (s: string) {
+	    return s.length === 5 && numberRegexp.test(s);
+	}
+	
+	//Test.ts
+	
+	import validate from "./StaticZipCodeValidator";
+	
+	let strings = ["Hello", "98052", "101"];
+	
+	// Use function validate
+	strings.forEach(s => {
+	  console.log(`"${s}" ${validate(s) ? " matches" : " does not match"}`);
+	});
+
+default导出也可以是一个值
+
+	//OneTwoThree.ts
+	export default "123";
+	
+	//Log.ts
+	
+	import num from "./OneTwoThree";
+	
+	console.log(num); // "123"
+
+**export = 和 import = require()**
+
+CommonJS和AMD都有一个exports对象的概念，它包含了一个模块的所有导出内容。
+
+它们也支持把exports替换为一个自定义对象。 默认导出就好比这样一个功能；然而，它们却并不相互兼容。 TypeScript模块支持 export =语法以支持传统的CommonJS和AMD的工作流模型。
+
+export =语法定义一个模块的导出对象。 它可以是类，接口，命名空间，函数或枚举。
+
+若要导入一个使用了export =的模块时，必须使用TypeScript提供的特定语法import let = require("module")。
+	
+	//ZipCodeValidator.ts
+	let numberRegexp = /^[0-9]+$/;
+	class ZipCodeValidator {
+	    isAcceptable(s: string) {
+	        return s.length === 5 && numberRegexp.test(s);
+	    }
+	}
+	export = ZipCodeValidator;
+	
+	//Test.ts
+	import zip = require("./ZipCodeValidator");
+	
+	// Some samples to try
+	let strings = ["Hello", "98052", "101"];
+	
+	// Validators to use
+	let validator = new zip();
+	
+	// Show whether each string passed each validator
+	strings.forEach(s => {
+	  console.log(`"${ s }" - ${ validator.isAcceptable(s) ? "matches" : "does not match" }`);
+	});
+
+### 如何创建模块结构
+
+**尽可能地在顶层导出**
+
+*如果仅导出单个 class 或 function，使用 export default*
+
+就像“在顶层上导出”帮助减少用户使用的难度，一个默认的导出也能起到这个效果。 如果一个模块就是为了导出特定的内容，那么你应该考虑使用一个默认导出。 这会令模块的导入和使用变得些许简单。 比如：
+
+MyClass.ts
+
+	export default class SomeType {
+	  constructor() { ... }
+	}
+
+MyFunc.ts
+
+	export default function getThing() { return 'thing'; }
+
+Consumer.ts
+
+	import t from "./MyClass";
+	import f from "./MyFunc";
+	let x = new t();
+	console.log(f());
+
+对用户来说这是最理想的。他们可以随意命名导入模块的类型（本例为t）并且不需要多余的（.）来找到相关对象。
+
+*如果要导出多个对象，把它们放在顶层里导出*
+
+MyThings.ts
+	
+	export class SomeType { /* ... */ }
+	export function someFunc() { /* ... */ }
+
+相反地，当导入的时候：
+
+*明确地列出导入的名字*
+
+Consumer.ts
+
+	import { SomeType, SomeFunc } from "./MyThings";
+	let x = new SomeType();
+	let y = someFunc();
+
+*使用命名空间导入模式当你要导出大量内容的时候*
+
+MyLargeModule.ts
+
+	export class Dog { ... }
+	export class Cat { ... }
+	export class Tree { ... }
+	export class Flower { ... }
+
+Consumer.ts
+
+	import * as myLargeModule from "./MyLargeModule.ts";
+	let x = new myLargeModule.Dog();
+
+*使用重新导出进行扩展*
+
+我们可能经常需要去扩展一个模块的功能，推荐的方案是 不要去改变原来的对象，而是导出一个新的实体来提供新的功能。
+
+假设Calculator.ts模块里定义了一个简单的计算器实现。 这个模块同样提供了一个辅助函数来测试计算器的功能，通过传入一系列输入的字符串并在最后给出结果。
+
+Calculator.ts
+	
+	export class Calculator {
+	    private current = 0;
+	    private memory = 0;
+	    private operator: string;
+	
+	    protected processDigit(digit: string, currentValue: number) {
+	        if (digit >= "0" && digit <= "9") {
+	            return currentValue * 10 + (digit.charCodeAt(0) - "0".charCodeAt(0));
+	        }
+	    }
+	
+	    protected processOperator(operator: string) {
+	        if (["+", "-", "*", "/"].indexOf(operator) >= 0) {
+	            return operator;
+	        }
+	    }
+	
+	    protected evaluateOperator(operator: string, left: number, right: number): number {
+	        switch (this.operator) {
+	            case "+": return left + right;
+	            case "-": return left - right;
+	            case "*": return left * right;
+	            case "/": return left / right;
+	        }
+	    }
+	
+	    private evaluate() {
+	        if (this.operator) {
+	            this.memory = this.evaluateOperator(this.operator, this.memory, this.current);
+	        }
+	        else {
+	            this.memory = this.current;
+	        }
+	        this.current = 0;
+	    }
+	
+	    public handelChar(char: string) {
+	        if (char === "=") {
+	            this.evaluate();
+	            return;
+	        }
+	        else {
+	            let value = this.processDigit(char, this.current);
+	            if (value !== undefined) {
+	                this.current = value;
+	                return;
+	            }
+	            else {
+	                let value = this.processOperator(char);
+	                if (value !== undefined) {
+	                    this.evaluate();
+	                    this.operator = value;
+	                    return;
+	                }
+	            }
+	        }
+	        throw new Error(`Unsupported input: '${char}'`);
+	    }
+	
+	    public getResult() {
+	        return this.memory;
+	    }
+	}
+	
+	export function test(c: Calculator, input: string) {
+	    for (let i = 0; i < input.length; i++) {
+	        c.handelChar(input[i]);
+	    }
+	
+	    console.log(`result of '${input}' is '${c.getResult()}'`);
+	}
+
+这是使用导出的test函数来测试计算器。
+
+TestCalculator.ts
+
+	import { Calculator, test } from "./Calculator";
+	
+	
+	let c = new Calculator();
+	test(c, "1+2*33/11="); // prints 9
+
+现在扩展它，添加支持输入其它进制（十进制以外），让我们来创建ProgrammerCalculator.ts。
+
+ProgrammerCalculator.ts
+
+import { Calculator } from "./Calculator";
+
+	class ProgrammerCalculator extends Calculator {
+	    static digits = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "A", "B", "C", "D", "E", "F"];
+	
+	    constructor(public base: number) {
+	        super();
+	        if (base <= 0 || base > ProgrammerCalculator.digits.length) {
+	            throw new Error("base has to be within 0 to 16 inclusive.");
+	        }
+	    }
+	
+	    protected processDigit(digit: string, currentValue: number) {
+	        if (ProgrammerCalculator.digits.indexOf(digit) >= 0) {
+	            return currentValue * this.base + ProgrammerCalculator.digits.indexOf(digit);
+	        }
+	    }
+	}
+	
+	// Export the new extended calculator as Calculator
+	export { ProgrammerCalculator as Calculator };
+	
+	// Also, export the helper function
+	export { test } from "./Calculator";
+
+新的ProgrammerCalculator模块导出的API与原先的Calculator模块很相似，但却没有改变原模块里的对象。 下面是测试ProgrammerCalculator类的代码：
+
+TestProgrammerCalculator.ts
+
+	import { Calculator, test } from "./ProgrammerCalculator";
+	
+	let c = new Calculator(2);
+	test(c, "001+010="); // prints 3
 
 ### 内部模块
 内部模块创建一个封闭的作用域，供同一个js文件内的代码使用。
