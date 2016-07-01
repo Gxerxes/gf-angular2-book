@@ -469,10 +469,9 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
     	// };
     	```
 
-## 1.3.5 模块
+##1.3.5 模块
 
-关于本节的讲解的模块要明确一点：为了与 ECMAScript 2015里的术语保持一致， “内部模块”现在称做“命名空间”。
-“外部模块”现在则简称为“模块”。所以这里所说的模块即是”外部模块“
+关于本节的讲解的模块要明确一点：为了与 ECMAScript 2015里的术语保持一致， “内部模块”称做“命名空间”。 “外部模块”简称为“模块”。所以这里所说的模块即是”外部模块“
 
 ### 介绍
 
@@ -488,7 +487,7 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 
 任何声明（比如变量，函数，类，类型别名或接口）都能够通过添加export关键字来导出。
 
-	//Validation.ts
+Validation.ts
 	
 	export interface StringValidator {
 	    isAcceptable(s: string): boolean;
@@ -519,7 +518,7 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 
 我们经常会去扩展其它模块，并且只导出那个模块的部分内容。 重新导出功能并不会在当前模块导入那个模块或定义一个新的局部变量。
 
-	ParseIntBasedZipCodeValidator.ts
+ParseIntBasedZipCodeValidator.ts
 	
 	export class ParseIntBasedZipCodeValidator {
 	    isAcceptable(s: string) {
@@ -532,7 +531,7 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 
 或者一个模块可以包裹多个模块，并把他们导出的内容联合在一起通过语法：export * from "module"。
 
-	//AllValidators.ts
+AllValidators.ts
 	
 	export * from "./StringValidator"; // exports interface StringValidator
 	export * from "./ZipCodeValidator";  // exports class ZipCodeValidator
@@ -567,7 +566,7 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 
 每个模块都可以有一个default导出。 默认导出使用 default关键字标记；并且一个模块只能够有一个default导出。 需要使用一种特殊的导入形式来导入 default导出。类和函数声明可以直接被标记为默认导出。 标记为默认导出的类和函数的名字是可以省略的。
 	
-	//ZipCodeValidator.ts
+ZipCodeValidator.ts
 	
 	export default class ZipCodeValidator {
 	    static numberRegexp = /^[0-9]+$/;
@@ -576,14 +575,14 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 	    }
 	}
 	
-	//Test.ts
+Test.ts
 	
 	import validator from "./ZipCodeValidator";
 	
 	let myValidator = new validator();
 或者
 
-	StaticZipCodeValidator.ts
+StaticZipCodeValidator.ts
 	
 	const numberRegexp = /^[0-9]+$/;
 	
@@ -591,7 +590,7 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 	    return s.length === 5 && numberRegexp.test(s);
 	}
 	
-	//Test.ts
+Test.ts
 	
 	import validate from "./StaticZipCodeValidator";
 	
@@ -604,10 +603,11 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
 
 default导出也可以是一个值
 
-	//OneTwoThree.ts
+OneTwoThree.ts
+
 	export default "123";
 	
-	//Log.ts
+Log.ts
 	
 	import num from "./OneTwoThree";
 	
@@ -623,7 +623,8 @@ export =语法定义一个模块的导出对象。 它可以是类，接口，�
 
 若要导入一个使用了export =的模块时，必须使用TypeScript提供的特定语法import let = require("module")。
 	
-	//ZipCodeValidator.ts
+ZipCodeValidator.ts
+
 	let numberRegexp = /^[0-9]+$/;
 	class ZipCodeValidator {
 	    isAcceptable(s: string) {
@@ -632,7 +633,8 @@ export =语法定义一个模块的导出对象。 它可以是类，接口，�
 	}
 	export = ZipCodeValidator;
 	
-	//Test.ts
+Test.ts
+
 	import zip = require("./ZipCodeValidator");
 	
 	// Some samples to try
@@ -645,7 +647,7 @@ export =语法定义一个模块的导出对象。 它可以是类，接口，�
 	strings.forEach(s => {
 	  console.log(`"${ s }" - ${ validator.isAcceptable(s) ? "matches" : "does not match" }`);
 	});
-
+	
 ### 如何创建模块结构
 
 **尽可能地在顶层导出**
