@@ -451,7 +451,7 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
     	}
 	```
 
-	以上readonly方法将被如下的方式调用。
+以上readonly方法将被如下的方式调用。
 
     	```typescript
     	function readonly(target, name, descriptor){
@@ -460,14 +460,18 @@ TypeScript支持getters/setters来， 它能帮助你有效的控制对对象成
     	}
     
     	readonly(Person.prototype, 'name', descriptor);
-    	// descriptor对象的初始值如下
-    	// {
-    	//   value: oneFunction,
-    	//   enumerable: false,
-    	//   configurable: true,
-    	//   writable: true
-    	// };
     	```
+descriptor对象的初始值如下
+
+	```typescript
+    	 descriptor = {
+    	   value: oneFunction,
+    	   enumerable: false,
+    	   configurable: true,
+    	   writable: true
+    	 };
+    	 ```
+
 
 ##1.3.5 模块
 
