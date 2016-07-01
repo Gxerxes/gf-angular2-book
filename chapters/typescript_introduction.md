@@ -923,11 +923,11 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
 
 ### 额外的属性检查
 
-  ```typescript
+  	```typescript
 	 interface FullName {
 	    firstName: string;
 	    secondName?: string;
-    }
+    	}
 	function printLabel(name:FullName) {
 	
   		console.log(name.firstName+" "+name.secondName);
@@ -959,7 +959,7 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
 
 接口能够描述JavaScript中对象拥有的各种各样的外形。 除了描述带有属性的普通对象外，接口也可以描述函数类型，如下例所示：
 
- 	```typescript
+    ```typescript
     interface SearchFunc {
   		(source: string, subString: string): boolean;
 	}
@@ -991,7 +991,7 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
     
     let myArray: StringArray;
     myArray = ["Bob", "Fred"];
- 	```
+    ```
 ### 类类型
 
 与C#或Java里接口的基本作用一样，TypeScript也能够用它来明确的强制一个类去符合某种契约。
@@ -1005,7 +1005,7 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
     	currentTime: Date;
     	constructor(h: number, m: number) { }
     }
-	```
+    ```
 
 可以在接口中描述一个方法，在类里实现它，如同下面的setTime方法一样：
 
@@ -1022,7 +1022,7 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
     	}
     	constructor(h: number, m: number) { }
     }
-	```
+    ```
 
 接口描述了类的公共部分，而不是公共和私有两部分。 它不会帮你检查类是否具有某些私有成员。
 
@@ -1062,8 +1062,8 @@ TypeScript的核心原则之一是对值所具有的shape进行类型检查。 �
     let square = <Square>{};
     square.color = "blue";
     square.sideLength = 10;
-    square.penWidth = 5.0;
-	```
+    square.penWidth = 5.0;  
+    ```
 
 ### 混合类型
 
