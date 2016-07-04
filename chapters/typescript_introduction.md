@@ -1086,7 +1086,7 @@ TestProgrammerCalculator.ts
 	c.interval = 5.0;
     ```
 
-## 装饰器
+## 1.3.7 装饰器
 
 ###装饰器介绍
 
@@ -1315,7 +1315,7 @@ tsconfig.json:
 *注意：这个例子需要使用reflect-metadata库。 查看 元数据了解reflect-metadata库更详细的信息。*
 
 
-##1.3.7 泛型(Generic)
+##1.3.8 泛型(Generic)
 
 泛型是为了提升代码的复用性而开发的，与Java，C#中的泛型类似。
 比如我们有个最小堆算法，需要同时支持number和string。这样可以把集合类型改为any。这样就完全放弃了类型检查。
@@ -1360,7 +1360,7 @@ tsconfig.json:
     console.log(zip<number, string>([1,2,3], ['Jim', 'Sam', 'Tom']));
     ```
 
-##1.3.8 Typescript工具
+##1.3.9 Typescript工具
 ### tsconfig.json
 tsc编译器有很多命令行参数，但是都写在命令行上十分繁琐。于是有了 *tsconfig.json* 文件。
 当运行 *tsc* 时，编译器从当前目录向上搜索 *tsconfig.json* 文件加载配置，类似于 *package.json* 文件的搜索方式。
