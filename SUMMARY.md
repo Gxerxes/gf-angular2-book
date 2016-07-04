@@ -3,7 +3,7 @@
 * [前言](README.md)
 * [第一部分 - Angular2 入门](chapters/part1.md)
    * [1.1 走进前端新时代 - (Progress 50%)](chapters/1.1.md)
-   * [1.2 Angular2 简介 - (Progress 80%)](chapters/1.2.md)
+   * [1.2 Angular2 简介 - (Progress 85%)](chapters/1.2.md)
    * [1.3 TypeScript 简介 - (Progress 70%)](chapters/1.3.md)
    * [1.4 快速上手 - (Progress 90%)](chapters/1.4.md)
 * [第二部分 - 深入理解](chapters/part2.md)
