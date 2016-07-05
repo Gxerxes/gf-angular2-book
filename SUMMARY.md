@@ -8,7 +8,7 @@
    * [1.4 快速上手 - (Progress 90%)](chapters/1.4.md)
 * [第二部分 - 深入理解](chapters/part2.md)
    * [2.1 架构总览 - (Progress 60%)](chapters/2.1.md)
-   * [2.2 组件 - (Progress 90%)](chapters/2-2.md)
+   * [2.2 组件 - (Progress 90%)](chapters/2.2.md)
    * [2.3 模板 - (Progress 95%)](chapters/2.3.md)
    * [2.4 指令 - (Progress 90%)](chapters/2.4.md)
    * [2.5 服务- (Progress 50%)](chapters/2.5.md)
