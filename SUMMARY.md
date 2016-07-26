@@ -14,7 +14,7 @@
    * [2.5 服务- (Progress 50%)](chapters/2.5.md)
    * [2.6 依赖注入- (Progress 80%)](chapters/2.6.md)
    * [2.7 路由 - (Progress 40%)](chapters/2.7.md)
-   * [2.8 测试 - (Progress 70%)](chapters/2.8.md)
+   * [2.8 测试 - (Progress 90%)](chapters/2.8.md)
 * [第三部分 - 实战开发](chapters/part3.md)
   * [3.1 案例背景 - (Progress 100%)](chapters/3.1.md)
   * [3.2 主要特性 - (Progress 100%)](chapters/3.2.md)
