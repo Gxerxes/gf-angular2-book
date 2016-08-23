@@ -55,12 +55,14 @@
 |名词|约定|备注|
 |:---|:---|:---|
 | Service | 服务 | |
+| RxJS | RxJS | |
 | Observable | Observable | 不翻译 |
 
 # 依赖注入
 |名词|约定|备注|
 |:---|:---|:---|
 | Dependency Injection| 依赖注入 | |
+| Provider| Provider | |
 | Injector | 注入器 | |
 | Dependency Injection Tokens |  | 待定 | 
 | Injector Tree | 注入器树 | 待商讨 |
